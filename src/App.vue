@@ -20,13 +20,14 @@
               <label :class="{ checked: (sortOrder == sortkey) }" :for="sortkey">{{ sortkey }}</label>
             </span>
           </div>
-          
         </div>
-        <button class="cards-restore" v-if="hasSavedCards()" @click="restoreCards()">Restore cards</button>
       </div>
       <div class="pagination">
-        <button v-if="page > 1" @click="page = page - 1">&#8249; Previous</button>
-        <button v-if="hasNextPage" @click="page = page + 1">Next &#8250;</button>
+        <div class="pagination-buttons">
+          <button v-if="page > 1" @click="page = page - 1">&#8249; Previous</button>
+          <button v-if="hasNextPage" @click="page = page + 1">Next &#8250;</button>
+        </div>
+        <button class="cards-restore" v-if="hasSavedCards()" @click="restoreCards()">Restore cards</button>
       </div>
       <div class="cards">
         <card v-for="(item, idx) in paginatedCards" :card="item" :key="idx" @cardClose="removeCard"></card>
@@ -67,6 +68,19 @@ export default {
     };
   },
   methods: {
+    async getCatalogData() {
+      this.loading = true;
+      try {
+        const res = await fetch("http://contest.elecard.ru/frontend_data/catalog.json");
+        const catalogData = await res.json();
+        this.loading = false;
+        return catalogData;
+      }
+      catch (error) {
+        console.log(error);
+        this.loading = false;
+      }
+    },
     saveCard(card) {
       const catalogId = "cardId_" + (new Date()).getTime();
       this.$cookies.set(catalogId, card);
@@ -95,7 +109,9 @@ export default {
       this.$cookies.keys()
       .filter(key => key.startsWith("cardId_"))
       .forEach(cardId => vm.$cookies.remove(cardId));
-      window.location.reload();
+      this.getCatalogData().then(tmpCatalog => {
+        this.catalog = tmpCatalog;
+      });
     },
     sortCatalog(sortOrder) {
       return this.orderedCatalogOptions[sortOrder]();
@@ -142,11 +158,8 @@ export default {
       );
     },
   },
-  async created() {
-    this.loading = true;
-    try {
-      const res = await fetch("http://contest.elecard.ru/frontend_data/catalog.json");
-      let tmpCatalog = await res.json();
+  created() {
+    this.getCatalogData().then(tmpCatalog => {
       tmpCatalog.forEach(item => {
         if (!this.treeData.children.some(obj => obj.name === item.category)) {
           this.treeData.children.push({
@@ -160,12 +173,7 @@ export default {
       } else {
         this.catalog = tmpCatalog;
       }
-      this.loading = false;
-    }
-    catch (error) {
-      console.log(error);
-      this.loading = false;
-    }
+    });
 
     const windowData = Object.fromEntries(
       new URL(window.location).searchParams.entries()
@@ -300,10 +308,14 @@ footer {
 }
 .pagination {
   display: flex;
-  gap: 1rem;
+  justify-content: space-between;
   margin-bottom: 1rem;
 }
-.pagination button {
+.pagination-buttons {
+  display: flex;
+  gap: 1rem;
+}
+.pagination-buttons button {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 1rem;
@@ -321,6 +333,7 @@ footer {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 3px;
+  box-shadow: 5px 5px 5px -5px rgba(38, 47, 61, 0.8);
   color: #fff;
   background-color: #213e70;
   opacity: 0.5;
@@ -328,7 +341,6 @@ footer {
 .cards-restore:hover {
   cursor: pointer;
   opacity: 1;
-  box-shadow: 5px 5px 5px -5px rgba(38, 47, 61, 0.3);
 }
 
 @keyframes spin {
