@@ -14,16 +14,19 @@
       <div class="cards-menu">
         <div class="sort-orders">
           <span>Sorted by:</span>
-          <span v-for="(sortkey, idx) in Object.keys(orderedCatalogOptions)" :key="idx">
-            <input type="radio" :id="sortkey" :value="sortkey" v-model="sortOrder">
-            <label for="sortkey">{{ sortkey }}</label>
-          </span>
+          <div class="sort-buttons-wrapper">
+            <span class="sort-button" v-for="(sortkey, idx) in Object.keys(orderedCatalogOptions)" :key="idx">
+              <input type="radio" :id="sortkey" :value="sortkey" v-model="sortOrder">
+              <label :class="{ checked: (sortOrder == sortkey) }" :for="sortkey">{{ sortkey }}</label>
+            </span>
+          </div>
+          
         </div>
         <button class="cards-restore" v-if="hasSavedCards()" @click="restoreCards()">Restore cards</button>
       </div>
       <div class="pagination">
-        <button v-if="page > 1" @click="page = page - 1">Previous</button>
-        <button v-if="hasNextPage" @click="page = page + 1">Next</button>
+        <button v-if="page > 1" @click="page = page - 1">&#8249; Previous</button>
+        <button v-if="hasNextPage" @click="page = page + 1">Next &#8250;</button>
       </div>
       <div class="cards">
         <card v-for="(item, idx) in paginatedCards" :card="item" :key="idx" @cardClose="removeCard"></card>
@@ -207,11 +210,17 @@ body {
 .view-switches label {
   display: inline-block;
   padding: 0.5rem 1rem;
+  background-color: #81aec6;
   cursor: pointer;
 }
-.checked {
+.view-switches label:hover {
+  filter: brightness(110%);
+}
+.view-switches label.checked {
   color: #81aec6;
   background-color: #f3f3f3;
+  filter: brightness(1);
+  cursor: auto;
 }
 header {
   display: flex;
@@ -256,12 +265,56 @@ footer {
 }
 .sort-orders {
   display: flex;
+  align-items: center;
   gap: 1rem;
+  font-weight: 700;
+  color: #81aec6;
+}
+.sort-buttons-wrapper {
+  border-radius: 0.5rem;
+  border: 2px solid #81aec6;
+  box-shadow: 5px 5px 5px -5px rgba(38, 47, 61, 0.3);
+  overflow: hidden;
+}
+.sort-button input {
+  display: none;
+}
+.sort-button label {
+  display: inline-block;
+  padding: 0.15rem 1rem;
+  font-weight: 500;
+  text-transform: lowercase;
+  color: #81aec6;
+  border: 1px solid #81aec6;
+  background-color: #f3f3f3;
+  cursor: pointer;
+}
+.sort-button label:hover {
+  filter: brightness(95%);
+}
+.sort-button label.checked {
+  color: #f3f3f3;
+  background-color: #81aec6;
+  filter: brightness(1);
+  cursor: auto;
 }
 .pagination {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+}
+.pagination button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 5px 5px 5px -5px rgba(38, 47, 61, 0.3);
+  font-weight: 700;
+  color: #f3f3f3;
+  background-color: #81aec6;
+  cursor: pointer;
+}
+.pagination button:hover {
+  filter: brightness(110%);
 }
 .cards-restore {
   display: inline;
