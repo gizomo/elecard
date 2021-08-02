@@ -1,10 +1,10 @@
 <template>
   <div class="card">
     <span class="card-close" @click="close"></span>
-    <!-- <img :src="card.image" :alt="card.image"> -->
-    <img :src="'http://contest.elecard.ru/frontend_data/'+card.image" alt="image placeholder">
+    <div class="card-image" :style="{ backgroundImage: 'url(http://contest.elecard.ru/frontend_data/' + card.image + ')' }"></div>
     <div class="caption">
       <p>Category: {{ card.category }}</p>
+      <p>File name: {{ formatName }}</p>
       <p>File created: {{ formatDate }}</p>
       <p>File size: {{ formatBytes }}</p>
     </div>
@@ -19,16 +19,22 @@ export default {
   },
   methods: {
     close() {
-      // this.$cookies.set(this.card.image, this.card)
       this.$emit("cardClose", this.card);
     }
   },
   computed: {
+    formatName() {
+      return this.card.image.split("/")[1];
+    },
     formatDate() {
       const date = new Date(this.card.timestamp);
-      return date.getDate()+"."+(date.getMonth()+1)+"."+date.getFullYear()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds();
+      return ('0' + date.getHours()).slice(-2) + ":"
+           + ('0' + date.getMinutes()).slice(-2) + ":"
+           + ('0' + date.getSeconds()).slice(-2) + " "
+           + ('0' + date.getDate()).slice(-2) + "."
+           + ('0' + (date.getMonth() + 1)).slice(-2) + "."
+           + date.getFullYear();
     },
-
     formatBytes() {
       const bytes = this.card.filesize, decimals = 2, k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
       if (bytes === 0) return '0 Bytes';
@@ -41,6 +47,8 @@ export default {
 
 <style>
 .card {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 calc((100% / 5) - 2rem);
   position: relative;
   overflow: hidden;
@@ -48,8 +56,10 @@ export default {
   background-color: #cae2e1;
   box-shadow: 5px 5px 5px -5px rgba(38, 47, 61, 0.3);
 }
-.card img {
-  width: 100%;
+.card-image {
+  flex-basis: 12rem;
+  background-size: cover;
+  background-position: center;
 }
 .card-close {
   position: absolute;
@@ -80,6 +90,7 @@ export default {
   transform: rotate(-45deg);
 }
 .caption {
+  flex-grow: 2;
   padding: 1rem;
   background-color: #f6f4eb;
 }
@@ -93,4 +104,29 @@ export default {
 .caption p:last-child {
   margin-bottom: 0;
 }
+@media screen and (max-width: 90em) {
+  .card {
+    flex: 1 1 calc(25% - 2rem);
+  }
+}
+@media screen and (max-width: 80em) {
+  .card {
+    flex: 1 1 calc((100% / 3) - 2rem);
+  }
+}
+@media screen and (max-width: 60em) {
+  .card {
+    flex: 1 1 calc(50% - 2rem);
+  }
+}
+@media screen and (max-width: 40em) {
+  .card {
+    flex: 1 1 calc(100% - 2rem);
+  }
+  .card-image {
+    flex-basis: 20rem;
+  }
+}
+
+
 </style>

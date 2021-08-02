@@ -1,12 +1,11 @@
 <template>
   <header id="header">
     <h1>Challenge Boro 2021.02 frontend</h1>
-    <div class="switchView">
-      <span>View: </span>
-      <input type="radio" id="card" value="card" v-model="radioSwitch">
-      <label for="card">Card</label>
-      <input type="radio" id="tree" value="tree" v-model="radioSwitch">
-      <label for="tree">Tree</label>
+    <div class="view-switches">
+      <input type="radio" id="card-switch" value="card" v-model="radioSwitch">
+      <label :class="{ checked: (radioSwitch == 'card') }" for="card-switch">Cards</label>
+      <input type="radio" id="tree-switch" value="tree" v-model="radioSwitch">
+      <label :class="{ checked: (radioSwitch == 'tree') }" for="tree-switch">Tree</label>
     </div>
   </header>
   <div v-if="loading" class="loader"></div>
@@ -14,7 +13,7 @@
     <div class="cards-view" v-if="radioSwitch == 'card'">
       <div class="cards-menu">
         <div class="sort-orders">
-          <span>Sorted by: </span>
+          <span>Sorted by:</span>
           <span v-for="(sortkey, idx) in Object.keys(orderedCatalogOptions)" :key="idx">
             <input type="radio" :id="sortkey" :value="sortkey" v-model="sortOrder">
             <label for="sortkey">{{ sortkey }}</label>
@@ -28,23 +27,26 @@
       </div>
       <div class="cards">
         <card v-for="(item, idx) in paginatedCards" :card="item" :key="idx" @cardClose="removeCard"></card>
-        <!-- <card v-for="(item, idx) in sortCatalog(sortOrder)" :card="item" :key="idx" @cardClose="removeCard"></card> -->
       </div>
     </div>
-    <div class="tree" v-else>
-      <h2>Tree</h2>
+    <div class="tree-view" v-else>
+      <ul>
+        <tree-item :item="treeData"></tree-item>
+      </ul>
     </div>
   </div>
-  <footer><p>This is a footer</p></footer>
+  <footer><p>Developted by Ivan Godenov, 2021</p></footer>
 </template>
 
 <script>
 import Card from "./Card.vue";
+import TreeItem from "./TreeItem.vue";
 
 export default {
   name: 'App',
   components: {
     Card,
+    TreeItem
   },
   data() {
     return {
@@ -52,21 +54,16 @@ export default {
       loading: false,
 
       catalog: [],
+      treeData: {
+        "name": "Images Catalog",
+        "children": [],
+      },
       sortOrder: "Category",
 
       page: 1,
     };
   },
   methods: {
-    handleScroll() {
-      const header = document.getElementById("header");
-      const sticky = header.offsetTop;
-      if (window.pageYOffset > sticky) {
-        header.classList.add("sticky");
-      } else {
-        header.classList.remove("sticky");
-      }
-    },
     saveCard(card) {
       const catalogId = "cardId_" + (new Date()).getTime();
       this.$cookies.set(catalogId, card);
@@ -126,7 +123,7 @@ export default {
       return {
         page: this.page,
       };
-    }
+    },
   },
   watch: {
     paginatedCards() {
@@ -147,6 +144,14 @@ export default {
     try {
       const res = await fetch("http://contest.elecard.ru/frontend_data/catalog.json");
       let tmpCatalog = await res.json();
+      tmpCatalog.forEach(item => {
+        if (!this.treeData.children.some(obj => obj.name === item.category)) {
+          this.treeData.children.push({
+            name: item.category,
+            children: tmpCatalog.filter(file => file.category === item.category)
+          });
+        }
+      });
       if (this.hasSavedCards()) {
         this.catalog = tmpCatalog.filter(item => !this.getRemovedCards().includes(item.image));
       } else {
@@ -170,13 +175,7 @@ export default {
         this[key] = windowData[key];
       }
     });
-  },
-  mounted() {
-    window.addEventListener('scroll', this.handleScroll);
-  },
-  beforeUnmount() {
-    window.removeEventListener('scroll', this.handleScroll);
-  },
+  }
 }
 </script>
 
@@ -190,25 +189,45 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f3f3f3;
 }
+#app {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr auto;
+}
+#card-switch, #tree-switch {
+  display: none;
+}
+.view-switches {
+  display: inline-block;
+  border: 5px solid #f3f3f3;
+  border-radius: 2rem;
+  overflow: hidden;
+}
+.view-switches label {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+.checked {
+  color: #81aec6;
+  background-color: #f3f3f3;
+}
 header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 2rem;
+  color: #fff;
   background-color: #81aec6;
   box-shadow: 0px 5px 10px 2px rgba(38, 47, 61, 0.3);
+  z-index: 10;
 }
 footer {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
   padding: 1rem 2rem;
+  color: #fff;
   background-color: #81aec6;
-}
-.sticky {
-  position: fixed;
-  top: 0;
-  width: 100%;
+  box-shadow: 0px -5px 10px 2px rgba(38, 47, 61, 0.3);
   z-index: 10;
 }
 .loader {
@@ -221,6 +240,7 @@ footer {
 }
 .main {
   padding: 1rem;
+  overflow: auto;
 }
 .cards {
   display: flex;
@@ -233,6 +253,10 @@ footer {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+.sort-orders {
+  display: flex;
+  gap: 1rem;
 }
 .pagination {
   display: flex;
@@ -260,6 +284,12 @@ footer {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@media screen and (max-width: 60em) {
+  header {
+    display: block;
   }
 }
 </style>
