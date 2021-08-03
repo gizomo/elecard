@@ -39,10 +39,10 @@ export default {
       return lightBoxPromise;
     },
 
-    confirm() {
-      this.$options.lightBoxController.resolve(true);
-      this.isOpen = false;
-    },
+    // confirm() {
+    //   this.$options.lightBoxController.resolve(true);
+    //   this.isOpen = false;
+    // },
 
     close() {
       this.$options.lightBoxController.resolve(false);
@@ -52,7 +52,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .lightbox {
   position: fixed;
   top: 50%;
