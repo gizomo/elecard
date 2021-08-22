@@ -28,15 +28,18 @@ export default {
     },
     formatDate() {
       const date = new Date(this.card.timestamp);
-      return ('0' + date.getHours()).slice(-2) + ":"
-           + ('0' + date.getMinutes()).slice(-2) + ":"
-           + ('0' + date.getSeconds()).slice(-2) + " "
-           + ('0' + date.getDate()).slice(-2) + "."
-           + ('0' + (date.getMonth() + 1)).slice(-2) + "."
-           + date.getFullYear();
+      const formatter = new Intl.DateTimeFormat("ru", {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric"
+      });
+      return formatter.format(date);
     },
     formatBytes() {
-      const bytes = this.card.filesize, decimals = 2, k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const bytes = this.card.filesize, decimals = 2, k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
       if (bytes === 0) return '0 Bytes';
       const i = Math.floor(Math.log(bytes) / Math.log(k));
       return parseFloat((bytes / Math.pow(k, i)).toFixed(decimals < 0 ? 0 : decimals)) + ' ' + sizes[i];

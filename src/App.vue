@@ -83,7 +83,7 @@ export default {
     },
     saveCard(card) {
       const catalogId = "cardId_" + (new Date()).getTime();
-      this.$cookies.set(catalogId, card);
+      localStorage.setItem(catalogId, JSON.stringify(card));
     },
     removeCatalogItem(card) {
       const index = this.catalog.findIndex(item => item.image === card.image);
@@ -94,21 +94,19 @@ export default {
       this.removeCatalogItem(card);
     },
     hasSavedCards() {
-      return this.$cookies.keys().some(name => name.startsWith("cardId_"));
+      return Object.keys(localStorage).some(name => name.startsWith("cardId_"));
     },
     getRemovedCards() {
-      let vm = this;
-      return this.$cookies.keys()
+      return Object.keys(localStorage)
         .filter(key => key.startsWith("cardId_"))
         .map(name => {
-          return vm.$cookies.get(name).image;
+          return JSON.parse(localStorage.getItem(name)).image;
         });
     },
     restoreCards() {
-      let vm = this;
-      this.$cookies.keys()
+      Object.keys(localStorage)
       .filter(key => key.startsWith("cardId_"))
-      .forEach(cardId => vm.$cookies.remove(cardId));
+      .forEach(cardId => localStorage.removeItem(cardId));
       this.getCatalogData().then(tmpCatalog => {
         this.catalog = tmpCatalog;
       });
@@ -120,7 +118,6 @@ export default {
   computed: {
     orderedCatalogOptions() {
       return {
-        // "Category": () => { return this.catalog.sort((a, b) => { return (a.category > b.category) ? 1 : -1; }); },
         "Category": () => { return this.catalog.sort((a, b) => a.category.localeCompare(b.category)) },
         "Date": () => { return this.catalog.sort((a, b) => { return a.timestamp - b.timestamp; }); },
         "File size": () => { return this.catalog.sort((a, b) => { return a.filesize - b.filesize; }); },

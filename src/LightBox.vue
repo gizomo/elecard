@@ -38,12 +38,6 @@ export default {
 
       return lightBoxPromise;
     },
-
-    confirm() {
-      this.$options.lightBoxController.resolve(true);
-      this.isOpen = false;
-    },
-
     close() {
       this.$options.lightBoxController.resolve(false);
       this.isOpen = false;
