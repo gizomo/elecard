@@ -8,36 +8,38 @@
       <label :class="{ checked: (radioSwitch == 'tree') }" for="tree-switch">Tree</label>
     </div>
   </header>
-  <div v-if="loading" class="loader"></div>
   <div class="main">
-    <div class="cards-view" v-if="radioSwitch == 'card'">
-      <div class="cards-menu">
-        <div class="sort-orders">
-          <span>Sorted by:</span>
-          <div class="sort-buttons-wrapper">
-            <span class="sort-button" v-for="(sortkey, idx) in Object.keys(orderedCatalogOptions)" :key="idx">
-              <input type="radio" :id="sortkey" :value="sortkey" v-model="sortOrder">
-              <label :class="{ checked: (sortOrder == sortkey) }" :for="sortkey">{{ sortkey }}</label>
-            </span>
+    <div v-if="loading" class="loader"></div>
+    <transition name="slide-fade" mode="out-in">
+      <div class="cards-view" v-if="radioSwitch == 'card'">
+        <div class="cards-menu">
+          <div class="sort-orders">
+            <span>Sorted by:</span>
+            <div class="sort-buttons-wrapper">
+              <span class="sort-button" v-for="(sortkey, idx) in Object.keys(orderedCatalogOptions)" :key="idx">
+                <input type="radio" :id="sortkey" :value="sortkey" v-model="sortOrder">
+                <label :class="{ checked: (sortOrder == sortkey) }" :for="sortkey">{{ sortkey }}</label>
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="pagination">
-        <div class="pagination-buttons">
-          <button v-if="page > 1" @click="page = page - 1">&#8249; Previous</button>
-          <button v-if="hasNextPage" @click="page = page + 1">Next &#8250;</button>
+        <div class="pagination">
+          <div class="pagination-buttons">
+            <button v-if="page > 1" @click="page = page - 1">&#8249; Previous</button>
+            <button v-if="hasNextPage" @click="page = page + 1">Next &#8250;</button>
+          </div>
+          <button class="cards-restore" v-if="hasSavedCards()" @click="restoreCards()">Restore cards</button>
         </div>
-        <button class="cards-restore" v-if="hasSavedCards()" @click="restoreCards()">Restore cards</button>
+        <div class="cards">
+          <card v-for="(item, idx) in paginatedCards" :card="item" :key="idx" @cardClose="removeCard"></card>
+        </div>
       </div>
-      <div class="cards">
-        <card v-for="(item, idx) in paginatedCards" :card="item" :key="idx" @cardClose="removeCard"></card>
+      <div class="tree-view" v-else>
+        <ul>
+          <tree-item :item="treeData"></tree-item>
+        </ul>
       </div>
-    </div>
-    <div class="tree-view" v-else>
-      <ul>
-        <tree-item :item="treeData"></tree-item>
-      </ul>
-    </div>
+    </transition>
   </div>
   <footer><p>Developted by Ivan Godenov, 2021</p></footer>
 </template>
@@ -245,14 +247,19 @@ footer {
   z-index: 10;
 }
 .loader {
-  border: 16px solid #f3f3f3;
-  border-top: 16px solid #213e70;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border: 1rem solid #e2e2e2;
+  border-top: 1rem solid #213e70;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 3rem;
+  height: 3rem;
   animation: spin 2s linear infinite;
 }
 .main {
+  position: relative;
   padding: 1rem;
   overflow: auto;
 }
@@ -260,7 +267,7 @@ footer {
   display: flex;
   flex-wrap: wrap;
   gap: 2rem;
-  margin-bottom: 6rem;
+  margin-bottom: 2rem;
 }
 .cards-menu {
   display: flex;
@@ -338,6 +345,17 @@ footer {
 .cards-restore:hover {
   cursor: pointer;
   opacity: 1;
+}
+
+.slide-fade-enter-active {
+  transition: all .3s ease;
+}
+.slide-fade-leave-active {
+  transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+.slide-fade-enter, .slide-fade-leave-to {
+  transform: translateX(50%);
+  opacity: 0;
 }
 
 @keyframes spin {

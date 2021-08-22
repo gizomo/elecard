@@ -130,6 +130,4 @@ export default {
     flex-basis: 20rem;
   }
 }
-
-
 </style>
